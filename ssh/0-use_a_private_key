@@ -2,4 +2,4 @@
 # a script that uses ssh to connect to your server using the private key ~/.ssh/school with the user ubuntu
 Host 6160-web-01
     User ubuntu
-    IdentifyFile ~/.ssh/alu_key
+    IdentifyFile ~/.ssh/school
