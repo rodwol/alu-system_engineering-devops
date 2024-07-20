@@ -1,11 +1,43 @@
 #!/usr/bin/env bash
 # script that install nginx and configure it to return custom 404 page not found error
-nginx
-server {
-    error_page 404 /404.html;
-    location = /404.html {
-        root /usr/share/nginx/html;
-        internal;
-        return 404 "Ceci n'est pas une page";
-    }
+CUSTOM_404_PAGE="/var/www/html/404.html"
+NGINX_CONFIG="/etc/nginx/sites-available/default"
+
+# Create the custom 404 error page
+echo "Creating custom 404 error page..."
+sudo bash -c "cat > $CUSTOM_404_PAGE <<EOF
+<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <title>404 Not Found</title>
+</head>
+<body>
+    <h1>Ceci n'est pas une page</h1>
+</body>
+</html>
+EOF"
+
+# Update Nginx configuration to use the custom 404 page
+echo "Configuring Nginx to use the custom 404 page..."
+sudo bash -c "cat >> $NGINX_CONFIG <<EOF
+
+# Custom 404 page configuration
+error_page 404 /404.html;
+location = /404.html {
+    internal;
 }
+EOF"
+
+# Test Nginx configuration
+echo "Testing Nginx configuration..."
+sudo nginx -t
+
+if [ $? -eq 0 ]; then
+    echo "Nginx configuration is okay. Restarting Nginx..."
+    sudo systemctl restart nginx
+    echo "Nginx restarted successfully. Custom 404 page is now active."
+else
+    echo "Nginx configuration test failed. Please check the configuration file."
+fi
