@@ -1,44 +1,15 @@
 #!/usr/bin/env bash
-# Update package list and install Nginx
+# Configure Nginx so that its HTTP response contains a custom header
+# The name of the custom HTTP header must be `X-Served-By`
+# The value of the custom HTTP header must be the `hostname` of the server Nginx is running on
+
 sudo apt-get update
-sudo apt-get install -y nginx
+sudo apt-get -y install nginx
+sudo ufw enable
+sudo ufw allow 'Nginx HTTP'
+sudo ufw allow 'OpenSSH'
+echo 'Hello World!' |sudo tee /var/www/html/index.html
 
-# Get the hostname of the server
-HOSTNAME=$(hostname)
-
-# Configure Nginx to include custom HTTP header
-sudo bash -c 'cat > /etc/nginx/conf.d/custom_headers.conf' <<EOL
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    root /var/www/html;
-    index index.html index.htm;
-
-    server_name _;
-
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-
-    add_header X-Served-By $HOSTNAME;
-}
-EOL
-
-# Remove the default configuration file if it exists
-if [ -f /etc/nginx/sites-enabled/default ]; then
-    sudo rm /etc/nginx/sites-enabled/default
-fi
-
-# Enable the new configuration by linking it to sites-enabled
-sudo ln -s /etc/nginx/conf.d/custom_headers.conf /etc/nginx/sites-enabled/
-
-# Restart Nginx to apply the changes
-sudo systemctl restart nginx
-
-# Ensure Nginx starts on boot
-sudo systemctl enable nginx
-
-# Confirm Nginx is running
-sudo systemctl status nginx
-
+custom_header="server_name _;\n\tadd_header X-Served-By \$HOSTNAME;"
+sudo sed -i "s|server_name _;|$custom_header|" /etc/nginx/sites-enabled/default
+sudo service nginx restart
