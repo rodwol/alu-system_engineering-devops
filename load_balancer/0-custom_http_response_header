@@ -1,20 +1,32 @@
 #!/usr/bin/env bash
+# comment 
+# inspired from https://stackoverflow.com/questions/22306006/configuration-file-etc-nginx-nginx-conf-test-failed-how-do-i-know-why-this-h
+sudo apt remove --purge nginx nginx-full nginx-common -y
+sudo apt update
+sudo apt install nginx -y
+sudo touch /var/www/html/index.html
 
-# Update package list and install Nginx
-sudo apt-get update
-sudo apt-get -y install nginx
+echo "Holberton School" | sudo tee /var/www/html/index.html
+sudo touch /var/www/html/error404.html
+echo "Ceci n'est pas une page" | sudo tee /var/www/html/error404.html
 
-# Enable firewall and allow necessary services
-sudo ufw enable
-sudo ufw allow 'Nginx HTTP'
-sudo ufw allow 'OpenSSH'
+printf %s 'server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
 
-# Create a simple HTML file
-echo 'Hello World!' | sudo tee /var/www/html/index.html
+        root /var/www/html;
 
-# Configure Nginx to add the custom header with the hostname
-custom_header="server_name _;\n\tadd_header X-Served-By \$hostname;"
-sudo sed -i "s|server_name _;|$custom_header|" /etc/nginx/sites-available/default
+        index index.html;
+        error_page 404 /error404.html;
 
-# Restart Nginx to apply the changes
+        server_name _;
+        
+        add_header X-Served-By $hostname;
+        
+        location /redirect_me {
+           return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4/;
+        }
+}
+' | sudo tee /etc/nginx/sites-available/default
+
 sudo service nginx restart
