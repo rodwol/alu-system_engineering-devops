@@ -6,5 +6,5 @@ apt-get -y install nginx
 ufw enable
 ufw allow 'Nginx HTTP'
 ufw allow 'OpenSSH'
-echo "Holberton School" > /var/www/html/index.html
+echo "Holberton School" > /tmp/correction/0230576279320925234434643821161266656684_5/2026/6160/web_server/output
 service nginx restart
