@@ -1,43 +1,18 @@
 #!/usr/bin/env bash
-# script that install nginx and configure it to return custom 404 page not found error
-CUSTOM_404_PAGE="/var/www/html/404.html"
-NGINX_CONFIG="/etc/nginx/sites-available/default"
+#Configures Nginx server to have a custom 404 page that contains the string
 
-# Create the custom 404 error page
-echo "Creating custom 404 error page..."
-sudo bash -c "cat > $CUSTOM_404_PAGE <<EOF
-<!DOCTYPE html>
-<html lang=\"en\">
-<head>
-    <meta charset=\"UTF-8\">
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-    <title>404 Not Found</title>
-</head>
-<body>
-    <h1>Ceci n'est pas une page</h1>
-</body>
-</html>
-EOF"
+sudo apt-get update
+sudo apt-get -y install nginx
+sudo ufw allow 'Nginx HTTP'
+echo "This is Pacifique from Holberton School :)" | sudo tee /var/www/html/index.html > /dev/null
 
-# Update Nginx configuration to use the custom 404 page
-echo "Configuring Nginx to use the custom 404 page..."
-sudo bash -c "cat >> $NGINX_CONFIG <<EOF
+# codes to redirect a specific endpoint (eg: redirect /redirect_me to https://www.github.com/NzizaPacifique250)
+string_for_replacement="server_name _;\n\trewrite ^\/redirect_me https:\/\/www.github.com\/NzizaPacifique250 permanent;"
+sudo sed -i "s/server_name _;/$string_for_replacement/" /etc/nginx/sites-enabled/default
 
-# Custom 404 page configuration
-error_page 404 /404.html;
-location = /404.html {
-    internal;
-}
-EOF"
+# codes to create error page and add a redirect for error 404
+echo "Ceci n'est pas une page" | sudo tee /var/www/html/404.html > /dev/null
+string_for_replacement="listen 80 default_server;\n\terror_page 404 \/404.html;\n\tlocation = \/404.html {\n\t\troot \/var\/www\/html;\n\t\tinternal;\n\t}"
+sudo sed -i "s/listen 80 default_server;/$string_for_replacement/" /etc/nginx/sites-enabled/default
 
-# Test Nginx configuration
-echo "Testing Nginx configuration..."
-sudo nginx -t
-
-if [ $? -eq 0 ]; then
-    echo "Nginx configuration is okay. Restarting Nginx..."
-    sudo systemctl restart nginx
-    echo "Nginx restarted successfully. Custom 404 page is now active."
-else
-    echo "Nginx configuration test failed. Please check the configuration file."
-fi
+sudo service nginx restart
