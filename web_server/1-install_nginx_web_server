@@ -1,35 +1,10 @@
 #!/usr/bin/env bash
-# Update the package list
-apt-get update
+# SetUp Process for Nginx on a server
 
-# Install NGINX
-apt-get install -y nginx
-
-# Create the directory for HTML files
-mkdir -p /etc/nginx/html
-
-# Create and populate the index.html file
-echo "Holberton School" > /etc/nginx/html/index.html
-
-# Create and populate the NGINX default server block configuration
-cat <<EOL > /etc/nginx/sites-available/default
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    root /etc/nginx/html;
-    index index.html index.htm;
-
-    server_name _;
-
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-}
-EOL
-
-# Test the NGINX configuration for syntax errors
-nginx -t
-
-# Restart the NGINX service to apply changes
+apt-get -y update
+apt-get -y install nginx
+ufw enable
+ufw allow 'Nginx HTTP'
+ufw allow 'OpenSSH'
+echo "Holberton School" > /var/www/html/index.html
 service nginx restart
